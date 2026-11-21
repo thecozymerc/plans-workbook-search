@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 14px; margin: 12px; }
+    input { width: 70%; padding: 6px; font-size: 14px; }
+    button { padding: 6px 14px; font-size: 14px; }
+    #status { color: #555; margin: 10px 0; }
+    .hit { margin: 8px 0; }
+    .hit a { font-weight: bold; }
+    .snippet { color: #444; }
+  </style>
+</head>
+<body>
+  <div>
+    <input id="kw" type="text" placeholder="Type a keyword, e.g. Oracle">
+    <button onclick="run()">Search</button>
+  </div>
+  <div id="status"></div>
+  <div id="results"></div>
+  <script>
+    document.getElementById('kw').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') run();
+    });
+    function run() {
+      var kw = document.getElementById('kw').value.trim();
+      var status = document.getElementById('status');
+      var box = document.getElementById('results');
+      box.innerHTML = '';
+      if (!kw) { status.textContent = 'Type a keyword first.'; return; }
+      status.textContent = 'Searching every tab…';
+      google.script.run
+        .withSuccessHandler(function (hits) {
+          status.textContent = hits.length + ' result(s) for "' + kw + '"';
+          hits.forEach(function (h) {
+            var div = document.createElement('div');
+            div.className = 'hit';
+            var a = document.createElement('a');
+            a.href = h.url; a.target = '_blank'; a.textContent = h.tab + ' — cell ' + h.cell;
+            var sn = document.createElement('div');
+            sn.className = 'snippet'; sn.textContent = h.snippet;
+            div.appendChild(a); div.appendChild(sn);
+            box.appendChild(div);
+          });
+        })
+        .withFailureHandler(function (err) {
+          status.textContent = 'Search failed: ' + err.message;
+        })
+        .plansSearchRun(kw);
+    }
+  </script>
+</body>
+</html>
